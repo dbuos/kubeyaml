@@ -1,0 +1,25 @@
+name: buildx
+
+on:
+  push:
+    branches: multi_arch_build
+
+jobs:
+  buildx:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Docker Login
+        uses: Azure/docker-login@v1
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Config Buildx
+        uses: crazy-max/ghaction-docker-buildx@v3.3.0
+      - name: Config Builder
+        run: docker buildx create --name mbuilder && docker buildx use mbuilder
+      - name: Docker Build and Push
+        run: docker buildx build --platform linux/arm64,linux/amd64 -t upetco/kubeyaml:gh-${{ github.run_number }} . --push
